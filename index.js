@@ -16,11 +16,12 @@ app.post('/register-driver', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO drivers (name, subname, car_name, plate, driver_image_url, car_image_url, tasks)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [name, subname, carName, plate, driverImageUrl, carImageUrl, tasks]
-    );
+  `INSERT INTO drivers (name, subname, car_name, plate, driver_image_url, car_image_url, tasks)
+   VALUES ($1, $2, $3, $4, $5, $6, $7::text[])
+   RETURNING *`,
+  [ name, subname, carName, plate, driverImageUrl, carImageUrl, tasks ]
+);
+
 
     res.status(200).json({ success: true, driver: result.rows[0] });
   } catch (error) {
