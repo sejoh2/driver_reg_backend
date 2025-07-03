@@ -41,5 +41,11 @@ app.get('/drivers', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('CelebRide Backend is running!');
+});
+
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
