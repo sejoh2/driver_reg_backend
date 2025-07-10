@@ -6,27 +6,60 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// Auto-create drivers table if it doesn't exist
-const initializeDatabase = async () => {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS drivers (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      subname TEXT NOT NULL,
-      car_name TEXT NOT NULL,
-      plate TEXT NOT NULL,
-      driver_image_url TEXT,
-      car_image_url TEXT,
-      tasks TEXT[] NOT NULL
-    );
-  `;
+const createDriversTable = `
+  CREATE TABLE IF NOT EXISTS drivers (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    subname TEXT NOT NULL,
+    car_name TEXT NOT NULL,
+    plate TEXT NOT NULL,
+    driver_image_url TEXT,
+    car_image_url TEXT,
+    tasks TEXT[] NOT NULL
+  );
+`;
 
+const createScheduledRidesTable = `
+  CREATE TABLE IF NOT EXISTS scheduled_rides (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT,
+    driver_name TEXT NOT NULL,
+    car TEXT NOT NULL,
+    plate TEXT NOT NULL,
+    pickup TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    datetime TEXT NOT NULL,
+    payment TEXT NOT NULL,
+    distance TEXT,
+    est_time TEXT,
+    price TEXT,
+    status TEXT DEFAULT 'Pending'
+  );
+`;
+
+const dropScheduledRidesTable = async () => {
   try {
-    await pool.query(createTableQuery);
-    console.log("✅ Table 'drivers' is ready.");
+    await pool.query('DROP TABLE IF EXISTS scheduled_rides;');
+    console.log("🗑️ Table 'scheduled_rides' has been dropped.");
   } catch (err) {
-    console.error("❌ Failed to create table:", err);
+    console.error("❌ Failed to drop table:", err);
   }
 };
 
-module.exports = { pool, initializeDatabase };
+const initializeDatabase = async () => {
+  try {
+    await pool.query(createDriversTable);
+    console.log("✅ Table 'drivers' is ready.");
+
+    await pool.query(createScheduledRidesTable);
+    console.log("✅ Table 'scheduled_rides' is ready.");
+  } catch (err) {
+    console.error("❌ Failed to create tables:", err);
+  }
+};
+
+module.exports = {
+  pool,
+  initializeDatabase,
+  dropScheduledRidesTable
+};
