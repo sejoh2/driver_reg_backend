@@ -60,16 +60,27 @@ app.post('/scheduled-rides', async (req, res) => {
   }
 });
 
-// === GET: Fetch all scheduled rides
+// === GET: Fetch scheduled rides by UserId
 app.get('/scheduled-rides', async (req, res) => {
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM scheduled_rides ORDER BY datetime DESC');
-    res.status(200).json(result.rows);
+    const result = await pool.query(
+      'SELECT * FROM scheduled_rides WHERE user_id = $1 ORDER BY datetime DESC',
+      [userId]
+    );
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching scheduled rides:', error);
-    res.status(500).json({ error: 'Failed to fetch rides' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
 
 // === POST: Register a new driver
 app.post('/register-driver', async (req, res) => {
