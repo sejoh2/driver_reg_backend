@@ -9,10 +9,13 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // DROP and recreate the table (optional during development)
-(async () => {
-  await dropScheduledRidesTable();   // only for dev purposes
-  await initializeDatabase();
-})();
+if (process.env.NODE_ENV === 'development') {
+  (async () => {
+    console.log('🛠️ Dev mode: Initializing DB');
+    await initializeDatabase();
+  })();
+}
+
 
 // === POST: Add a scheduled ride
 app.post('/scheduled-rides', async (req, res) => {
