@@ -6,7 +6,9 @@ require('dotenv').config();
 const axios = require('axios');
 
 const admin = require('firebase-admin');
-const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_JSON);
+const serviceAccount = JSON.parse(
+  Buffer.from(process.env.FIREBASE_ADMIN_SDK_JSON, 'base64').toString('utf8')
+);
 
 
 //send notification route
