@@ -15,7 +15,8 @@ const createDriversTable = `
     plate TEXT NOT NULL,
     driver_image_url TEXT,
     car_image_url TEXT,
-    tasks TEXT[] NOT NULL
+    tasks TEXT[] NOT NULL,
+    FCM_token TEXT
   );
 `;
 
@@ -46,6 +47,16 @@ const dropScheduledRidesTable = async () => {
   }
 };
 
+// ✅ Add this function
+const dropDriversTable = async () => {
+  try {
+    await pool.query('DROP TABLE IF EXISTS drivers;');
+    console.log("🗑️ Table 'drivers' has been dropped.");
+  } catch (err) {
+    console.error("❌ Failed to drop 'drivers' table:", err);
+  }
+};
+
 const initializeDatabase = async () => {
   try {
     await pool.query(createDriversTable);
@@ -61,5 +72,6 @@ const initializeDatabase = async () => {
 module.exports = {
   pool,
   initializeDatabase,
-  dropScheduledRidesTable
+  dropScheduledRidesTable,
+  dropDriversTable
 };

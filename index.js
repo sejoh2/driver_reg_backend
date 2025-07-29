@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { pool, initializeDatabase, dropScheduledRidesTable } = require('./db');
+const { pool, initializeDatabase, dropScheduledRidesTable, dropDriversTable } = require('./db');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +12,7 @@ app.use(bodyParser.json());
 if (process.env.NODE_ENV === 'development') {
   (async () => {
     console.log('🛠️ Dev mode: Initializing DB');
+    await dropDriversTable();   
     await initializeDatabase();
   })();
 }
@@ -91,11 +92,12 @@ app.post('/register-driver', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO drivers (name, subname, car_name, plate, driver_image_url, car_image_url, tasks)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::text[])
-       RETURNING *`,
-      [ name, subname, carName, plate, driverImageUrl, carImageUrl, tasks ]
-    );
+  `INSERT INTO drivers (name, subname, car_name, plate, driver_image_url, car_image_url, tasks, fcm_token)
+   VALUES ($1, $2, $3, $4, $5, $6, $7::text[], $8)
+   RETURNING *`,
+  [name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken]
+);
+
 
     res.status(200).json({ success: true, driver: result.rows[0] });
   } catch (error) {
@@ -114,6 +116,7 @@ app.get('/drivers', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch drivers' });
   }
 });
+
 
 // Health check
 app.get('/', (req, res) => {
