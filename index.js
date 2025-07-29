@@ -6,8 +6,7 @@ require('dotenv').config();
 const axios = require('axios');
 
 const admin = require('firebase-admin');
-
-const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_JSON);
+const serviceAccount = require('./config/celebridedriver-firebase-adminsdk-fbsvc-17b4ef76d5.json');
 
 //send notification route
 const sendNotification = async (fcmToken, title, body, data = {}) => {
