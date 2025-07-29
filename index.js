@@ -88,7 +88,7 @@ app.get('/scheduled-rides', async (req, res) => {
 
 // === POST: Register a new driver
 app.post('/register-driver', async (req, res) => {
-  const { name, subname, carName, plate, driverImageUrl, carImageUrl, tasks } = req.body;
+  const { name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken} = req.body;
 
   try {
     const result = await pool.query(
