@@ -6,7 +6,13 @@ require('dotenv').config();
 const axios = require('axios');
 
 const admin = require('firebase-admin');
-const serviceAccount = require('./config/celebridedriver-firebase-adminsdk-fbsvc-17b4ef76d5.json');
+const admin = require('firebase-admin');
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_JSON);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 //send notification route
 const sendNotification = async (fcmToken, title, body, data = {}) => {
@@ -181,3 +187,4 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
