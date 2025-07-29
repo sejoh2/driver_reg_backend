@@ -3,10 +3,42 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { pool, initializeDatabase, dropScheduledRidesTable, dropDriversTable } = require('./db');
 require('dotenv').config();
+const axios = require('axios');
+
+const admin = require('firebase-admin');
+const serviceAccount = require('./config/celebridedriver-firebase-adminsdk-fbsvc-17b4ef76d5.json');
+
+//send notification route
+const sendNotification = async (fcmToken, title, body, data = {}) => {
+  const message = {
+    token: fcmToken,
+    notification: {
+      title,
+      body,
+    },
+    data: data, // custom key-value pairs
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log('✅ Notification sent:', response);
+    return { success: true, response };
+  } catch (error) {
+    console.error('❌ Error sending notification:', error);
+    return { success: false, error };
+  }
+};
+
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+ // path to your downloaded file
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 
 // DROP and recreate the table (optional during development)
 if (process.env.NODE_ENV === 'development') {
@@ -114,6 +146,30 @@ app.get('/drivers', async (req, res) => {
   } catch (error) {
     console.error('Error fetching drivers:', error);
     res.status(500).json({ error: 'Failed to fetch drivers' });
+  }
+});
+
+//Sending ride request notification via FCM token.
+app.post('/notify-driver', async (req, res) => {
+  const { driverId, title, body, data } = req.body;
+
+  try {
+    const result = await pool.query('SELECT fcm_token FROM drivers WHERE id = $1', [driverId]);
+    if (result.rows.length === 0 || !result.rows[0].fcm_token) {
+      return res.status(404).json({ success: false, error: 'Driver not found or FCM token missing' });
+    }
+
+    const fcmToken = result.rows[0].fcm_token;
+    const notificationResult = await sendNotification(fcmToken, title, body, data);
+
+    if (!notificationResult.success) {
+      return res.status(500).json({ success: false, error: notificationResult.error });
+    }
+
+    res.status(200).json({ success: true, fcmResponse: notificationResult.response });
+  } catch (error) {
+    console.error('Error in /notify-driver:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
