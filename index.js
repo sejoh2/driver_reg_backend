@@ -171,7 +171,7 @@ app.get('/driver/:uid', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT driver_image_url FROM drivers WHERE uid = $1',
+      'SELECT * FROM drivers WHERE uid = $1',
       [uid]
     );
 
@@ -179,12 +179,13 @@ app.get('/driver/:uid', async (req, res) => {
       return res.status(404).json({ error: 'Driver not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(result.rows[0]);  // Send all driver details
   } catch (error) {
-    console.error('Error fetching driver image:', error);
+    console.error('Error fetching driver details:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
