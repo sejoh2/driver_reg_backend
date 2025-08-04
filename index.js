@@ -143,6 +143,26 @@ app.post('/register-driver', async (req, res) => {
   }
 });
 
+// GET /driver-exists/:uid
+app.get('/driver-exists/:uid', async (req, res) => {
+  const { uid } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM drivers WHERE uid = $1',
+      [uid]
+    );
+    if (result.rows.length > 0) {
+      res.json({ exists: true, driver: result.rows[0] });
+    } else {
+      res.json({ exists: false });
+    }
+  } catch (err) {
+    console.error('Error checking driver existence:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // === GET: Fetch all drivers
 app.get('/drivers', async (req, res) => {
   try {
