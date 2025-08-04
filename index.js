@@ -47,7 +47,8 @@ admin.initializeApp({
 if (process.env.NODE_ENV === 'development') {
   (async () => {
     console.log('🛠️ Dev mode: Initializing DB');
-    await dropDriversTable();   
+    await dropDriversTable(); 
+    await dropScheduledRidesTable();
     await initializeDatabase();
   })();
 }
@@ -78,6 +79,7 @@ app.post('/scheduled-rides', async (req, res) => {
        RETURNING *`,
       [
         user_id || null,
+      
         driver_name,
         car,
         plate,
@@ -123,14 +125,14 @@ app.get('/scheduled-rides', async (req, res) => {
 
 // === POST: Register a new driver
 app.post('/register-driver', async (req, res) => {
-  const { name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken} = req.body;
+  const { uid, name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken} = req.body;
 
   try {
     const result = await pool.query(
-  `INSERT INTO drivers (name, subname, car_name, plate, driver_image_url, car_image_url, tasks, fcm_token)
-   VALUES ($1, $2, $3, $4, $5, $6, $7::text[], $8)
+  `INSERT INTO drivers (uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, fcm_token)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9)
    RETURNING *`,
-  [name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken]
+  [uid, name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken]
 );
 
 

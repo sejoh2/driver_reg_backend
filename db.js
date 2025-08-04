@@ -9,6 +9,7 @@ const pool = new Pool({
 const createDriversTable = `
   CREATE TABLE IF NOT EXISTS drivers (
     id SERIAL PRIMARY KEY,
+    uid TEXT UNIQUE,
     name TEXT NOT NULL,
     subname TEXT NOT NULL,
     car_name TEXT NOT NULL,
