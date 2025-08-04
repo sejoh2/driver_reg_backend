@@ -152,7 +152,7 @@ app.get('/driver-exists/:uid', async (req, res) => {
       [uid]
     );
     if (result.rows.length > 0) {
-      res.json({ exists: true, driver: result.rows[0] });
+      res.json({ exists: true });
     } else {
       res.json({ exists: false });
     }
@@ -161,6 +161,7 @@ app.get('/driver-exists/:uid', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 // 🔍 GET /driver/:uid
 // Fetches a driver's profile data (e.g. image URL) by their Firebase UID.
