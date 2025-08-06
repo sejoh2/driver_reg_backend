@@ -226,6 +226,32 @@ app.post('/notify-driver', async (req, res) => {
   }
 });
 
+// === PATCH: Update FCM token
+app.patch('/update-fcm-token', async (req, res) => {
+  const { uid, fcmToken } = req.body;
+
+  if (!uid || !fcmToken) {
+    return res.status(400).json({ success: false, error: 'uid and fcmToken are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE drivers SET fcm_token = $1 WHERE uid = $2 RETURNING *`,
+      [fcmToken, uid]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, error: 'Driver not found' });
+    }
+
+    res.status(200).json({ success: true, driver: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating FCM token:', error);
+    res.status(500).json({ success: false, error: 'Failed to update FCM token' });
+  }
+});
+
+
 
 // Health check
 app.get('/', (req, res) => {
