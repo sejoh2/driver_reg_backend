@@ -228,10 +228,11 @@ app.post('/notify-driver', async (req, res) => {
 
 // === PATCH: Update FCM token
 app.patch('/update-fcm-token', async (req, res) => {
-  const { uid, fcmToken } = req.body;
+  const { uid } = req.body;
+  const fcmToken = req.body.fcmToken ?? null; // Fallback to null if not provided
 
-  if (!uid || !fcmToken) {
-    return res.status(400).json({ success: false, error: 'uid and fcmToken are required' });
+  if (!uid) {
+    return res.status(400).json({ success: false, error: 'uid is required' });
   }
 
   try {
@@ -250,6 +251,7 @@ app.patch('/update-fcm-token', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to update FCM token' });
   }
 });
+
 
 
 
