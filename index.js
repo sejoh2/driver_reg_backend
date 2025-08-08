@@ -47,8 +47,8 @@ admin.initializeApp({
 if (process.env.NODE_ENV === 'development') {
   (async () => {
     console.log('🛠️ Dev mode: Initializing DB');
-    await dropDriversTable(); 
-    await dropScheduledRidesTable();
+    // await dropDriversTable(); 
+    // await dropScheduledRidesTable();
     await initializeDatabase();
   })();
 }
@@ -251,6 +251,53 @@ app.patch('/update-fcm-token', async (req, res) => {
   }
 });
 
+
+// POST or UPDATE customer profile image
+app.post('/customer-profile', async (req, res) => {
+  const { uid, name, profileImageUrl } = req.body;
+
+  if (!uid || !profileImageUrl) {
+    return res.status(400).json({ success: false, error: 'uid and profileImageUrl are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO customer_profile (uid, name, profile_image_url)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (uid) DO UPDATE 
+       SET profile_image_url = EXCLUDED.profile_image_url,
+           name = COALESCE(EXCLUDED.name, customer_profile.name)
+       RETURNING *`,
+      [uid, name || null, profileImageUrl]
+    );
+
+    res.status(200).json({ success: true, profile: result.rows[0] });
+  } catch (error) {
+    console.error('Error saving customer profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to save profile' });
+  }
+});
+
+
+app.get('/customer-profile/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM customer_profile WHERE uid = $1',
+      [uid]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    }
+
+    res.status(200).json({ success: true, profile: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
 
 
 

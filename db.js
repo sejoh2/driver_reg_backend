@@ -39,6 +39,17 @@ const createScheduledRidesTable = `
   );
 `;
 
+const createCustomerProfileTable = `
+  CREATE TABLE IF NOT EXISTS customer_profile (
+    id SERIAL PRIMARY KEY,
+    uid TEXT UNIQUE NOT NULL,
+    name TEXT,
+    profile_image_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`;
+
+
 const dropScheduledRidesTable = async () => {
   try {
     await pool.query('DROP TABLE IF EXISTS scheduled_rides;');
@@ -65,6 +76,11 @@ const initializeDatabase = async () => {
 
     await pool.query(createScheduledRidesTable);
     console.log("✅ Table 'scheduled_rides' is ready.");
+
+    
+    await pool.query(createCustomerProfileTable);
+    console.log("✅ Table 'customer_profile' is ready.");
+    
   } catch (err) {
     console.error("❌ Failed to create tables:", err);
   }
