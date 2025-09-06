@@ -49,6 +49,19 @@ const createCustomerProfileTable = `
   );
 `;
 
+const createdriverNotificationsTable = `
+  CREATE TABLE IF NOT EXISTS Driver_Notifications (
+     id SERIAL PRIMARY KEY,
+  driver_uid TEXT NOT NULL,         -- The driver UID to whom the notification belongs
+  title TEXT NOT NULL,              -- Notification title (e.g., "Ride Assigned", "Ride Completed")
+  pickup_location TEXT,             -- The ride pickup location
+  destination TEXT,                 -- The ride destination
+  image_url TEXT,                   -- Optional image (e.g., profile, car, or icon)
+  is_read BOOLEAN DEFAULT FALSE,    -- Track whether the driver has read the notification
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`;
+
 
 const dropScheduledRidesTable = async () => {
   try {
@@ -58,6 +71,16 @@ const dropScheduledRidesTable = async () => {
     console.error("❌ Failed to drop table:", err);
   }
 };
+
+const dropdriverNotificationsTable = async () => {
+  try {
+    await pool.query('DROP TABLE IF EXISTS notifications;');
+    console.log("🗑️ Table 'Driver_Notifications' has been dropped.");
+  } catch (err) {
+    console.error("❌ Failed to drop 'Driver_Notifications' table:", err);
+  }
+};
+
 
 // ✅ Add this function
 const dropDriversTable = async () => {
@@ -80,7 +103,9 @@ const initializeDatabase = async () => {
     
     await pool.query(createCustomerProfileTable);
     console.log("✅ Table 'customer_profile' is ready.");
-    
+
+    await pool.query(createdriverNotificationsTable);
+    console.log("✅ Table 'Driver_Notifications' is ready.");
   } catch (err) {
     console.error("❌ Failed to create tables:", err);
   }
@@ -90,5 +115,6 @@ module.exports = {
   pool,
   initializeDatabase,
   dropScheduledRidesTable,
-  dropDriversTable
+  dropDriversTable,
+  dropdriverNotificationsTable
 };

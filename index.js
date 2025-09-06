@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { pool, initializeDatabase, dropScheduledRidesTable, dropDriversTable } = require('./db');
+const { pool, initializeDatabase, dropScheduledRidesTable, dropDriversTable, dropdriverNotificationsTable} = require('./db');
 require('dotenv').config();
 const axios = require('axios');
 
@@ -49,6 +49,7 @@ if (process.env.NODE_ENV === 'development') {
     console.log('🛠️ Dev mode: Initializing DB');
     // await dropDriversTable(); 
     // await dropScheduledRidesTable();
+    // await dropdriverNotificationsTable();
     await initializeDatabase();
   })();
 }
@@ -100,6 +101,50 @@ app.post('/scheduled-rides', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to schedule ride' });
   }
 });
+
+// === POST: Add a driver notification
+app.post('/driver-notifications', async (req, res) => {
+  const { driverUid, title, pickupLocation, destination, imageUrl } = req.body;
+
+  if (!driverUid || !title) {
+    return res.status(400).json({ success: false, error: "Missing required fields" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO Driver_Notifications (driver_uid, title, pickup_location, destination, image_url)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [driverUid, title, pickupLocation || null, destination || null, imageUrl || null]
+    );
+
+    res.status(201).json({ success: true, notification: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error inserting driver notification:', error);
+    res.status(500).json({ success: false, error: 'Failed to insert driver notification' });
+  }
+});
+
+// === GET: Fetch notifications for a driver by UID
+app.get('/driver-notifications/:driverUid', async (req, res) => {
+  const { driverUid } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM Driver_Notifications WHERE driver_uid = $1 ORDER BY created_at DESC',
+      [driverUid]
+    );
+
+    res.json({ success: true, notifications: result.rows });
+  } catch (error) {
+    console.error('❌ Error fetching driver notifications:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch driver notifications' });
+  }
+});
+
+
+
+
 
 // === GET: Fetch scheduled rides by UserId
 app.get('/scheduled-rides', async (req, res) => {
