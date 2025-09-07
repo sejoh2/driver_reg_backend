@@ -296,6 +296,28 @@ app.patch('/update-fcm-token', async (req, res) => {
   }
 });
 
+// === GET: Fetch driver by ID (to get UID and other info)
+app.get('/drivers/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT id, uid, name, subname, car_name, plate, driver_image_url, car_image_url FROM drivers WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Driver not found' });
+    }
+
+    res.status(200).json({ success: true, driver: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error fetching driver by ID:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+
 
 // POST or UPDATE customer profile image
 app.post('/customer-profile', async (req, res) => {
