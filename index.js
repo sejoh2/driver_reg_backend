@@ -104,7 +104,7 @@ app.post('/scheduled-rides', async (req, res) => {
 
 // === POST: Add a driver notification
 app.post('/driver-notifications', async (req, res) => {
-  const { driverUid, title, pickupLocation, destination, imageUrl } = req.body;
+  const { driverUid, title, pickupLocation, destination, imageUrl, customerName } = req.body;
 
   if (!driverUid || !title) {
     return res.status(400).json({ success: false, error: "Missing required fields" });
@@ -112,10 +112,11 @@ app.post('/driver-notifications', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO Driver_Notifications (driver_uid, title, pickup_location, destination, image_url)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO Driver_Notifications 
+         (driver_uid, title, pickup_location, destination, image_url, customer_name)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [driverUid, title, pickupLocation || null, destination || null, imageUrl || null]
+      [driverUid, title, pickupLocation || null, destination || null, imageUrl || null, customerName || null]
     );
 
     res.status(201).json({ success: true, notification: result.rows[0] });
@@ -131,7 +132,10 @@ app.get('/driver-notifications/:driverUid', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM Driver_Notifications WHERE driver_uid = $1 ORDER BY created_at DESC',
+      `SELECT id, driver_uid, title, pickup_location, destination, image_url, customer_name, is_read, created_at
+       FROM Driver_Notifications
+       WHERE driver_uid = $1
+       ORDER BY created_at DESC`,
       [driverUid]
     );
 
@@ -142,13 +146,16 @@ app.get('/driver-notifications/:driverUid', async (req, res) => {
   }
 });
 
-// PATCH /driver-notifications/:notificationId
+// === PATCH: Mark a notification as read
 app.patch('/driver-notifications/:notificationId', async (req, res) => {
   const { notificationId } = req.params;
 
   try {
     const result = await pool.query(
-      'UPDATE Driver_Notifications SET is_read = TRUE WHERE id = $1 RETURNING *',
+      `UPDATE Driver_Notifications
+       SET is_read = TRUE
+       WHERE id = $1
+       RETURNING *`,
       [notificationId]
     );
 
@@ -162,10 +169,11 @@ app.patch('/driver-notifications/:notificationId', async (req, res) => {
       notification: result.rows[0],
     });
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    console.error('❌ Error marking notification as read:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
+
 
 
 

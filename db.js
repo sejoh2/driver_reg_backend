@@ -52,15 +52,17 @@ const createCustomerProfileTable = `
 const createdriverNotificationsTable = `
   CREATE TABLE IF NOT EXISTS Driver_Notifications (
      id SERIAL PRIMARY KEY,
-  driver_uid TEXT NOT NULL,         -- The driver UID to whom the notification belongs
-  title TEXT NOT NULL,              -- Notification title (e.g., "Ride Assigned", "Ride Completed")
-  pickup_location TEXT,             -- The ride pickup location
-  destination TEXT,                 -- The ride destination
-  image_url TEXT,                   -- Optional image (e.g., profile, car, or icon)
-  is_read BOOLEAN DEFAULT FALSE,    -- Track whether the driver has read the notification
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     driver_uid TEXT NOT NULL,         -- The driver UID to whom the notification belongs
+     title TEXT NOT NULL,              -- Notification title (e.g., "Ride Assigned", "Ride Completed")
+     pickup_location TEXT,             -- The ride pickup location
+     destination TEXT,                 -- The ride destination
+     image_url TEXT,                   -- Optional image (e.g., profile, car, or icon)
+     customer_name TEXT,               -- The name of the customer
+     is_read BOOLEAN DEFAULT FALSE,    -- Track whether the driver has read the notification
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `;
+
 
 
 const dropScheduledRidesTable = async () => {
