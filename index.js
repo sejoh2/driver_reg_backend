@@ -104,19 +104,19 @@ app.post('/scheduled-rides', async (req, res) => {
 
 // === POST: Add a driver notification
 app.post('/driver-notifications', async (req, res) => {
-  const { driverUid, title, pickupLocation, destination, imageUrl, customerName } = req.body;
+  const { notificationId, driverUid, title, pickupLocation, destination, imageUrl, customerName } = req.body;
 
-  if (!driverUid || !title) {
+  if (!notificationId || !driverUid || !title) {
     return res.status(400).json({ success: false, error: "Missing required fields" });
   }
 
   try {
     const result = await pool.query(
       `INSERT INTO Driver_Notifications 
-         (driver_uid, title, pickup_location, destination, image_url, customer_name)
-       VALUES ($1, $2, $3, $4, $5, $6)
+         (notification_id, driver_uid, title, pickup_location, destination, image_url, customer_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [driverUid, title, pickupLocation || null, destination || null, imageUrl || null, customerName || null]
+      [notificationId, driverUid, title, pickupLocation || null, destination || null, imageUrl || null, customerName || null]
     );
 
     res.status(201).json({ success: true, notification: result.rows[0] });
@@ -132,7 +132,7 @@ app.get('/driver-notifications/:driverUid', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, driver_uid, title, pickup_location, destination, image_url, customer_name, is_read, created_at
+      `SELECT notification_id, driver_uid, title, pickup_location, destination, image_url, customer_name, is_read, created_at
        FROM Driver_Notifications
        WHERE driver_uid = $1
        ORDER BY created_at DESC`,
@@ -154,7 +154,7 @@ app.patch('/driver-notifications/:notificationId', async (req, res) => {
     const result = await pool.query(
       `UPDATE Driver_Notifications
        SET is_read = TRUE
-       WHERE id = $1
+       WHERE notification_id = $1
        RETURNING *`,
       [notificationId]
     );
@@ -173,6 +173,7 @@ app.patch('/driver-notifications/:notificationId', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
+
 
 
 
