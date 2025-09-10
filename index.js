@@ -9,8 +9,6 @@ const admin = require('firebase-admin');
 const serviceAccount = JSON.parse(
   Buffer.from(process.env.FIREBASE_ADMIN_SDK_JSON, 'base64').toString('utf8')
 );
-const { v4: uuidv4 } = require('uuid');
-
 
 
 //send notification route
@@ -51,7 +49,7 @@ if (process.env.NODE_ENV === 'development') {
     console.log('🛠️ Dev mode: Initializing DB');
     // await dropDriversTable(); 
     // await dropScheduledRidesTable();
-    await dropdriverNotificationsTable();
+    // await dropdriverNotificationsTable();
     await initializeDatabase();
   })();
 }
@@ -113,14 +111,12 @@ app.post('/driver-notifications', async (req, res) => {
   }
 
   try {
-    const notificationId = uuidv4(); // 🔑 Generate UUID
-
     const result = await pool.query(
       `INSERT INTO Driver_Notifications 
-         (notification_id, driver_uid, title, pickup_location, destination, image_url, customer_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+         (driver_uid, title, pickup_location, destination, image_url, customer_name)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [notificationId, driverUid, title, pickupLocation || null, destination || null, imageUrl || null, customerName || null]
+      [driverUid, title, pickupLocation || null, destination || null, imageUrl || null, customerName || null]
     );
 
     res.status(201).json({ success: true, notification: result.rows[0] });
@@ -136,7 +132,7 @@ app.get('/driver-notifications/:driverUid', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT notification_id, driver_uid, title, pickup_location, destination, image_url, customer_name, is_read, created_at
+      `SELECT id, driver_uid, title, pickup_location, destination, image_url, customer_name, is_read, created_at
        FROM Driver_Notifications
        WHERE driver_uid = $1
        ORDER BY created_at DESC`,
@@ -158,7 +154,7 @@ app.patch('/driver-notifications/:notificationId', async (req, res) => {
     const result = await pool.query(
       `UPDATE Driver_Notifications
        SET is_read = TRUE
-       WHERE notification_id = $1
+       WHERE id = $1
        RETURNING *`,
       [notificationId]
     );
