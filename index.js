@@ -148,40 +148,31 @@ app.get('/driver-notifications/:driverUid', async (req, res) => {
 
 // === PATCH: Mark a notification as read
 app.patch('/driver-notifications/:notificationId', async (req, res) => {
-  const { notificationId } = req.params; // comes as a string (e.g. FCM ID)
+  const { notificationId } = req.params;
 
   try {
     const result = await pool.query(
-      `
-      UPDATE Driver_Notifications
-      SET is_read = TRUE
-      WHERE notification_id = $1
-      RETURNING *
-      `,
-      [notificationId] // no casting needed, TEXT matches FCM string IDs
+      `UPDATE Driver_Notifications
+       SET is_read = TRUE
+       WHERE notification_id = $1
+       RETURNING *`,
+      [notificationId]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: `Notification with ID ${notificationId} not found`,
-      });
+      return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
     res.status(200).json({
       success: true,
-      message: `Notification ${notificationId} marked as read`,
+      message: 'Notification marked as read',
       notification: result.rows[0],
     });
   } catch (error) {
-    console.error("❌ Error marking notification as read:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    console.error('❌ Error marking notification as read:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
-
 
 
 
