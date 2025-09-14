@@ -51,7 +51,7 @@ const createCustomerProfileTable = `
 
 const createdriverNotificationsTable = `
   CREATE TABLE IF NOT EXISTS Driver_Notifications (
-    notification_id BIGINT PRIMARY KEY,   -- Use BIGINT to store hashCode/localNotificationId
+    notification_id TEXT PRIMARY KEY,
     driver_uid TEXT NOT NULL,             -- The driver UID to whom the notification belongs
     title TEXT NOT NULL,                  -- Notification title (e.g., "Ride Assigned", "Ride Completed")
     pickup_location TEXT,                 -- The ride pickup location
