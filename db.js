@@ -17,9 +17,11 @@ const createDriversTable = `
     driver_image_url TEXT,
     car_image_url TEXT,
     tasks TEXT[] NOT NULL,
-    FCM_token TEXT
+    fcm_token TEXT,
+    is_online BOOLEAN DEFAULT FALSE
   );
 `;
+
 
 const createScheduledRidesTable = `
   CREATE TABLE IF NOT EXISTS scheduled_rides (

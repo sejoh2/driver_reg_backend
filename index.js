@@ -205,12 +205,14 @@ app.post('/register-driver', async (req, res) => {
   const { uid, name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken} = req.body;
 
   try {
-    const result = await pool.query(
-  `INSERT INTO drivers (uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, fcm_token)
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9)
+   const result = await pool.query(
+  `INSERT INTO drivers 
+   (uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, fcm_token, is_online)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9, FALSE)
    RETURNING *`,
   [uid, name, subname, carName, plate, driverImageUrl, carImageUrl, tasks, fcmToken]
 );
+
 
 
     res.status(200).json({ success: true, driver: result.rows[0] });
@@ -219,6 +221,33 @@ app.post('/register-driver', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to register driver' });
   }
 });
+
+// PATCH /driver-status/:uid
+app.patch('/driver-status/:uid', async (req, res) => {
+  const { uid } = req.params;
+  const { isOnline } = req.body;
+
+  if (typeof isOnline !== 'boolean') {
+    return res.status(400).json({ success: false, error: 'isOnline must be true or false' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE drivers SET is_online = $1 WHERE uid = $2 RETURNING *`,
+      [isOnline, uid]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Driver not found' });
+    }
+
+    res.status(200).json({ success: true, driver: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error updating driver status:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 
 // GET /driver-exists/:uid
 app.get('/driver-exists/:uid', async (req, res) => {
@@ -250,9 +279,10 @@ app.get('/driver/:uid', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM drivers WHERE uid = $1',
-      [uid]
-    );
+  'SELECT id, uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, is_online FROM drivers WHERE uid = $1',
+  [uid]
+);
+
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Driver not found' });
@@ -271,7 +301,9 @@ app.get('/driver/:uid', async (req, res) => {
 // === GET: Fetch all drivers
 app.get('/drivers', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM drivers');
+    const result = await pool.query(
+  'SELECT id, uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, is_online FROM drivers'
+);
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching drivers:', error);
@@ -334,9 +366,10 @@ app.get('/drivers/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, uid, name, subname, car_name, plate, driver_image_url, car_image_url FROM drivers WHERE id = $1',
-      [id]
-    );
+  'SELECT id, uid, name, subname, car_name, plate, driver_image_url, car_image_url, tasks, is_online FROM drivers WHERE id = $1',
+  [id]
+);
+
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Driver not found' });
